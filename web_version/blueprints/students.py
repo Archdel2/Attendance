@@ -172,42 +172,29 @@ def export_csv():
 
 @students_bp.route('/qr-codes')
 def generate_qr_codes():
-    """Generate QR codes for all students, organized by year level"""
+    """Generate QR codes for all students"""
     students = Student.query.order_by(Student.student_id).all()
     
-    # Create main QR codes directory
+    # Create QR codes directory
     qr_dir = 'static/qr_codes'
     os.makedirs(qr_dir, exist_ok=True)
     
-    # Group students by year level
-    year_levels = {}
-    for student in students:
-        year_level = str(student.year_level)
-        if year_level not in year_levels:
-            year_levels[year_level] = []
-        year_levels[year_level].append(student)
-    
     generated_count = 0
-    for year_level, year_students in year_levels.items():
-        # Create year level subdirectory
-        year_dir = os.path.join(qr_dir, f'Year_{year_level}')
-        os.makedirs(year_dir, exist_ok=True)
+    for student in students:
+        # Generate QR code
+        qr = qrcode.QRCode(version=1, box_size=10, border=5)
+        qr.add_data(student.student_id)
+        qr.make(fit=True)
         
-        for student in year_students:
-            # Generate QR code
-            qr = qrcode.QRCode(version=1, box_size=10, border=5)
-            qr.add_data(student.student_id)
-            qr.make(fit=True)
-            
-            # Create image
-            img = qr.make_image(fill_color="black", back_color="white")
-            
-            # Save image in year level folder
-            img_path = os.path.join(year_dir, f'{student.student_id}.png')
-            img.save(img_path)
-            generated_count += 1
+        # Create image
+        img = qr.make_image(fill_color="black", back_color="white")
+        
+        # Save image
+        img_path = os.path.join(qr_dir, f'{student.student_id}.png')
+        img.save(img_path)
+        generated_count += 1
     
-    flash(f'{generated_count} QR codes generated successfully, organized by year level', 'success')
+    flash(f'{generated_count} QR codes generated successfully', 'success')
     return redirect(url_for('students.index'))
 
 @students_bp.route('/search')
