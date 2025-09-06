@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Add Student - COMSOC Attendance System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page header -->
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">
+            <i class="fas fa-user-plus text-primary"></i>
+            Add Student
+        </h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <a href="{{ url_for('students.index') }}" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Students
+            </a>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user-plus"></i>
+                        Student Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="student_id" class="form-label">Student ID *</label>
+                            <input type="text" class="form-control" id="student_id" name="student_id" required>
+                            <div class="form-text">Enter a unique student identifier (e.g., 2023-0001)</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="fname" class="form-label">First Name *</label>
+                            <input type="text" class="form-control" id="fname" name="fname" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="year_level" class="form-label">Year Level *</label>
+                            <select class="form-select" id="year_level" name="year_level" required>
+                                <option value="">Select Year Level</option>
+                                <option value="1st Year">1st Year</option>
+                                <option value="2nd Year">2nd Year</option>
+                                <option value="3rd Year">3rd Year</option>
+                                <option value="4th Year">4th Year</option>
+                                <option value="5th Year">5th Year</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="course" class="form-label">Course *</label>
+                            <select class="form-select" id="course" name="course" required>
+                                <option value="">Select Course</option>
+                                <option value="Computer Science">Computer Science</option>
+                                <option value="Information Technology">Information Technology</option>
+                                <option value="Computer Engineering">Computer Engineering</option>
+                                <option value="Software Engineering">Software Engineering</option>
+                                <option value="Information Systems">Information Systems</option>
+                                <option value="Cybersecurity">Cybersecurity</option>
+                                <option value="Data Science">Data Science</option>
+                            </select>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Add Student
+                            </button>
+                            <a href="{{ url_for('students.index') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

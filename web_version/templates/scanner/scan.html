@@ -1,0 +1,310 @@
+{% extends "base.html" %}
+
+{% block title %}QR Scanner - COMSOC Attendance System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page header -->
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">
+            <i class="fas fa-qrcode text-primary"></i>
+            QR Code Scanner
+        </h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <a href="{{ url_for('attendance.view_record', record_id=record.record_id) }}" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Attendance Record
+            </a>
+        </div>
+    </div>
+
+    <!-- Record Info -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle"></i>
+                        Scanning for: {{ record.record_name }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>Record:</strong> {{ record.record_name }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Event:</strong> {{ record.event.event_name }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scanner Interface -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-camera"></i>
+                        Camera Scanner
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="scanner-container" class="text-center">
+                        <div id="camera-placeholder" class="border rounded p-5 bg-light">
+                            <i class="fas fa-camera fa-3x text-muted mb-3"></i>
+                            <h5>Camera Scanner</h5>
+                            <p class="text-muted">Click the button below to start the camera scanner</p>
+                            <button id="start-scanner" class="btn btn-primary">
+                                <i class="fas fa-play"></i> Start Scanner
+                            </button>
+                        </div>
+                        <video id="video" style="display: none; width: 100%; max-width: 640px;" autoplay></video>
+                        <canvas id="canvas" style="display: none;"></canvas>
+                    </div>
+                    
+                    <div class="mt-3 text-center">
+                        <button id="stop-scanner" class="btn btn-danger" style="display: none;">
+                            <i class="fas fa-stop"></i> Stop Scanner
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info"></i>
+                        Instructions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <ol>
+                        <li>Click "Start Scanner" to activate your camera</li>
+                        <li>Point the camera at a student's QR code</li>
+                        <li>The scanner will automatically detect and process the QR code</li>
+                        <li>Attendance will be marked automatically</li>
+                        <li>Click "Stop Scanner" when finished</li>
+                    </ol>
+                    
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-lightbulb"></i> Tips:</h6>
+                        <ul class="mb-0">
+                            <li>Ensure good lighting</li>
+                            <li>Hold the QR code steady</li>
+                            <li>Keep the QR code within the camera frame</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Scans -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-history"></i>
+                        Recent Scans
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="recent-scans">
+                        <p class="text-muted text-center">No scans yet</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scan Result Modal -->
+<div class="modal fade" id="scanResultModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Scan Result</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="scanResultContent">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+<script>
+let video = document.getElementById('video');
+let canvas = document.getElementById('canvas');
+let ctx = canvas.getContext('2d');
+let scanning = false;
+let stream = null;
+let recentScans = [];
+
+document.getElementById('start-scanner').addEventListener('click', startScanner);
+document.getElementById('stop-scanner').addEventListener('click', stopScanner);
+
+async function startScanner() {
+    try {
+        stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+                facingMode: 'environment',
+                width: { ideal: 640 },
+                height: { ideal: 480 }
+            } 
+        });
+        
+        video.srcObject = stream;
+        video.style.display = 'block';
+        document.getElementById('camera-placeholder').style.display = 'none';
+        document.getElementById('start-scanner').style.display = 'none';
+        document.getElementById('stop-scanner').style.display = 'inline-block';
+        
+        scanning = true;
+        scan();
+        
+    } catch (error) {
+        console.error('Error accessing camera:', error);
+        alert('Error accessing camera. Please ensure camera permissions are granted.');
+    }
+}
+
+function stopScanner() {
+    scanning = false;
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+    }
+    
+    video.style.display = 'none';
+    document.getElementById('camera-placeholder').style.display = 'block';
+    document.getElementById('start-scanner').style.display = 'inline-block';
+    document.getElementById('stop-scanner').style.display = 'none';
+}
+
+function scan() {
+    if (!scanning) return;
+    
+    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        canvas.height = video.videoHeight;
+        canvas.width = video.videoWidth;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height);
+        
+        if (code) {
+            processQRCode(code.data);
+        }
+    }
+    
+    requestAnimationFrame(scan);
+}
+
+function processQRCode(qrData) {
+    // Stop scanning temporarily to prevent multiple scans
+    scanning = false;
+    
+    fetch('{{ url_for("scanner.process_qr") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            qr_data: qrData,
+            record_id: {{ record.record_id }}
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        showScanResult(data);
+        if (data.success) {
+            addRecentScan(data.student);
+        }
+    })
+    .catch(error => {
+        console.error('Error processing QR code:', error);
+        showScanResult({
+            success: false,
+            message: 'Error processing QR code'
+        });
+    })
+    .finally(() => {
+        // Resume scanning after a short delay
+        setTimeout(() => {
+            scanning = true;
+            scan();
+        }, 2000);
+    });
+}
+
+function showScanResult(result) {
+    const modal = new bootstrap.Modal(document.getElementById('scanResultModal'));
+    const content = document.getElementById('scanResultContent');
+    
+    if (result.success) {
+        content.innerHTML = `
+            <div class="text-center">
+                <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                <h5 class="text-success">Attendance Recorded!</h5>
+                <p><strong>Student:</strong> ${result.student.name}</p>
+                <p><strong>ID:</strong> ${result.student.id}</p>
+                <p><strong>Course:</strong> ${result.student.course}</p>
+                <p class="text-muted">${result.message}</p>
+            </div>
+        `;
+    } else {
+        content.innerHTML = `
+            <div class="text-center">
+                <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+                <h5 class="text-danger">Scan Failed</h5>
+                <p class="text-muted">${result.message}</p>
+            </div>
+        `;
+    }
+    
+    modal.show();
+}
+
+function addRecentScan(student) {
+    recentScans.unshift({
+        name: student.name,
+        id: student.id,
+        time: new Date().toLocaleTimeString()
+    });
+    
+    // Keep only last 5 scans
+    if (recentScans.length > 5) {
+        recentScans = recentScans.slice(0, 5);
+    }
+    
+    updateRecentScansDisplay();
+}
+
+function updateRecentScansDisplay() {
+    const container = document.getElementById('recent-scans');
+    
+    if (recentScans.length === 0) {
+        container.innerHTML = '<p class="text-muted text-center">No scans yet</p>';
+        return;
+    }
+    
+    container.innerHTML = recentScans.map(scan => `
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+                <strong>${scan.name}</strong><br>
+                <small class="text-muted">${scan.id}</small>
+            </div>
+            <small class="text-muted">${scan.time}</small>
+        </div>
+    `).join('');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - COMSOC Attendance System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page header -->
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">
+            <i class="fas fa-tachometer-alt text-primary"></i>
+            Dashboard
+        </h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group me-2">
+                <a href="{{ url_for('students.add') }}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-plus"></i> Add Student
+                </a>
+                <a href="{{ url_for('events.add') }}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-calendar-plus"></i> Add Event
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stats-card h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-white-50 text-uppercase mb-1">
+                                Total Students
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-white">{{ total_students }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-white-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stats-card h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-white-50 text-uppercase mb-1">
+                                Total Events
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-white">{{ total_events }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar-alt fa-2x text-white-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stats-card h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-white-50 text-uppercase mb-1">
+                                Attendance Records
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-white">{{ total_records }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clipboard-check fa-2x text-white-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stats-card h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-white-50 text-uppercase mb-1">
+                                Today's Attendance
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-white">{{ today_attendance }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clock fa-2x text-white-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activities -->
+    <div class="row">
+        <!-- Recent Events -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-calendar-alt text-primary"></i>
+                        Recent Events
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_events %}
+                        <div class="list-group list-group-flush">
+                            {% for event in recent_events %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">{{ event.event_name }}</h6>
+                                    <small class="text-muted">{{ event.event_date.strftime('%B %d, %Y') }}</small>
+                                </div>
+                                <div>
+                                    <a href="{{ url_for('events.records', event_id=event.event_id) }}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="mt-3">
+                            <a href="{{ url_for('events.index') }}" class="btn btn-primary btn-sm">
+                                View All Events
+                            </a>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No events found.</p>
+                        <a href="{{ url_for('events.add') }}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-plus"></i> Create First Event
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Attendance Records -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-clipboard-check text-primary"></i>
+                        Recent Attendance Records
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_records %}
+                        <div class="list-group list-group-flush">
+                            {% for record in recent_records %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">{{ record.record_name }}</h6>
+                                    <small class="text-muted">{{ record.event.event_name }} - {{ record.created_at.strftime('%B %d, %Y') }}</small>
+                                </div>
+                                <div>
+                                    <a href="{{ url_for('attendance.view_record', record_id=record.record_id) }}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="mt-3">
+                            <a href="{{ url_for('attendance.index') }}" class="btn btn-primary btn-sm">
+                                View All Records
+                            </a>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No attendance records found.</p>
+                        <a href="{{ url_for('events.index') }}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-plus"></i> Create Event First
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-bolt text-primary"></i>
+                        Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('students.add') }}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-user-plus fa-2x mb-2"></i><br>
+                                Add Student
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('events.add') }}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-calendar-plus fa-2x mb-2"></i><br>
+                                Create Event
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('scanner.index') }}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-qrcode fa-2x mb-2"></i><br>
+                                QR Scanner
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('reports.summary') }}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-chart-bar fa-2x mb-2"></i><br>
+                                View Reports
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,145 +1,152 @@
 # COMSOC Attendance Management System
 
-A comprehensive attendance management system built with PyQt5 that includes QR code scanning capabilities for tracking student attendance at events. **Now updated to use MySQL database!**
+A comprehensive attendance management system with both **Desktop GUI** and **Web** versions, built with Python.
 
-## Features
+## 🎯 Project Overview
 
-- **Student Management**: Maintain a masterlist of students with ID, name, year level, and course
-- **Event Management**: Create and manage events with automatic attendance tracking
-- **QR Code Scanning**: Scan QR codes to automatically mark students as present
-- **Attendance Tracking**: View and modify attendance status (Present, Absent, Excused)
-- **Database Storage**: MySQL database for robust, scalable data storage
-- **Modern UI**: Clean, intuitive interface built with PyQt5
+This project provides two different implementations of the same attendance management system:
 
-## Project Structure
+- **GUI Version**: Desktop application built with PyQt5
+- **Web Version**: Web application built with Flask
 
-The code has been organized into logical, maintainable modules:
+Both versions share the same database schema and core functionality, but offer different user interfaces and deployment options.
+
+## 📁 Project Structure
 
 ```
 Attendance/
-├── run.py               # Main application launcher
-├── main_app.py          # Main application logic
-├── database.py          # MySQL database operations
-├── ui_pages.py          # UI page components
-├── camera_scanner.py    # Camera and QR code scanning
-├── config.py            # Configuration and environment variables
-├── requirements.txt     # Python dependencies
-├── .env                 # Environment configuration (MySQL credentials)
-├── test_db_connection.py # Database connection tester
-├── README.md            # This file
-└── README_MYSQL.md     # Detailed MySQL setup instructions
+├── web_version/           # Flask web application
+│   ├── app.py            # Main Flask application
+│   ├── models.py         # SQLAlchemy database models
+│   ├── run_web.py        # Web application launcher
+│   ├── requirements.txt  # Web dependencies
+│   ├── config.py         # Web configuration
+│   ├── blueprints/       # Flask blueprints
+│   ├── templates/        # HTML templates
+│   └── README_WEB.md     # Web version documentation
+├── gui_version/          # PyQt5 desktop application
+│   ├── main_app.py       # Main GUI application
+│   ├── run.py           # GUI application launcher
+│   ├── database.py      # Database operations
+│   ├── ui_pages.py      # UI components
+│   ├── camera_scanner.py # QR code scanning
+│   ├── requirements.txt  # GUI dependencies
+│   ├── config.py        # GUI configuration
+│   └── README_GUI.md    # GUI version documentation
+├── setup_database.py     # Database setup script
+├── test_db_connection.py # Database connection test
+├── config.py            # Shared configuration
+├── requirements.txt     # Combined dependencies
+└── README.md           # This file
 ```
 
-## Prerequisites
+## 🚀 Quick Start
 
-- **MySQL Server** running with database `comsoc_attendance` created
-- **Python 3.7+** with pip
-- **Camera** for QR code scanning functionality
+### Prerequisites
+- Python 3.8 or higher
+- MySQL database server
+- pip (Python package manager)
 
-## Installation
-
-1. **Install Python Dependencies**:
+### Database Setup
+1. Create a MySQL database named `comsoc_attendance`
+2. Run the database setup script:
    ```bash
-   pip install -r requirements.txt
+   python setup_database.py
    ```
 
-2. **Configure Database**:
-   - Edit `.env` file with your MySQL credentials
-   - Ensure database `comsoc_attendance` exists
+### Choose Your Version
 
-3. **Test Database Connection**:
-   ```bash
-   python test_db_connection.py
-   ```
+#### 🚀 Easy Launcher (Recommended)
+```bash
+python launcher.py
+```
+This will show you a menu to choose between versions and handle setup automatically.
 
-4. **Run the Application**:
-   ```bash
-   python run.py
-   ```
+#### 🌐 Web Version (Manual)
+```bash
+cd web_version
+pip install -r requirements.txt
+python run_web.py
+```
+Access at: `http://localhost:5000`
 
-## Database Schema
+#### 🖥️ GUI Version (Manual)
+```bash
+cd gui_version
+pip install -r requirements.txt
+python run.py
+```
 
-The system uses four main tables matching your MySQL structure:
+## 🔧 Features
 
-- **Students**: Student information (student_id, fname, year_level, course)
-- **Events**: Event details (event_id, event_name, event_date)
-- **AttendanceRecords**: Attendance record metadata (record_id, record_name, event_id)
-- **Attendance**: Actual attendance data (student details, status, timestamp)
+### Core Features (Both Versions)
+- **Student Management**: Add, edit, delete, import/export students
+- **Event Management**: Create and manage events
+- **QR Code Scanning**: Scan student QR codes for attendance
+- **Attendance Tracking**: Mark Present/Absent/Excused status
+- **Reporting**: Generate attendance reports
+- **Data Export**: Export to CSV and Excel formats
 
-## Configuration
+### Web Version Features
+- **Modern Web UI**: Responsive design with Bootstrap 5
+- **Multi-user Access**: Multiple users can access simultaneously
+- **Mobile Friendly**: Works on phones and tablets
+- **Real-time Updates**: Live attendance tracking
+- **RESTful API**: JSON endpoints for AJAX functionality
+- **Easy Deployment**: Can be hosted on any web server
 
-Edit `.env` file to configure:
-- MySQL database connection settings
-- Application dimensions and camera settings
-- UI styling preferences
+### GUI Version Features
+- **Native Desktop App**: Fast and responsive
+- **Offline Operation**: Works without internet connection
+- **Camera Integration**: Direct camera access for QR scanning
+- **System Integration**: Native file dialogs and system notifications
+- **High Performance**: Optimized for desktop use
 
-## Dependencies
+## 📊 Database Schema
 
-- **PyQt5**: GUI framework
-- **OpenCV**: Camera operations
-- **pyzbar**: QR code decoding
-- **NumPy**: Numerical operations
-- **mysql-connector-python**: MySQL database connectivity
-- **python-dotenv**: Environment variable management
+Both versions use the same MySQL database with these tables:
+- `students` - Student information
+- `events` - Event details
+- `attendance_records` - Attendance record sessions
+- `attendance` - Individual attendance entries
 
-## Usage
+## 🔄 Migration Between Versions
 
-### Main Menu
-- **View Events**: Access event management
-- **View Masterlist**: View student database
+You can switch between versions seamlessly:
+1. Both versions use the same database
+2. Data created in one version is immediately available in the other
+3. No data migration required
 
-### Event Management
-- Create new events
-- View existing events
-- Double-click an event to view attendance
+## 🛠️ Development
 
-### Attendance Tracking
-- View attendance for specific events
-- Manually modify attendance status
-- Use QR code scanner for automatic attendance
+### Adding Features
+- **Web Version**: Add routes in blueprints and create HTML templates
+- **GUI Version**: Add UI components in ui_pages.py and update main_app.py
 
-### QR Code Scanner
-- Point camera at student QR codes
-- Automatically marks students as present
-- Real-time feedback and status updates
+### Configuration
+- Edit `config.py` in each version folder for version-specific settings
+- Database settings are shared via the root `config.py`
 
-## Migration from SQLite
+## 📝 Documentation
 
-If you're upgrading from the SQLite version:
-1. Export existing data
-2. Create MySQL database structure
-3. Import data into new tables
-4. Update configuration files
-5. Test connection and run
+- **Web Version**: See `web_version/README_WEB.md`
+- **GUI Version**: See `gui_version/README_GUI.md`
+- **Database**: See `README_MYSQL.md`
 
-## Troubleshooting
+## 🤝 Contributing
 
-### Database Issues
-- Run `test_db_connection.py` to verify MySQL connection
-- Check MySQL server is running
-- Verify database permissions and credentials
-- Ensure database `comsoc_attendance` exists
+1. Choose the version you want to work on
+2. Follow the specific documentation for that version
+3. Test both versions to ensure compatibility
+4. Update both README files if adding new features
 
-### Camera Issues
-- Ensure camera is not in use by other applications
-- Check camera permissions
-- Verify OpenCV installation
-
-### Import Errors
-- Verify all dependencies are installed
-- Check Python path and module locations
-
-## Support
-
-For detailed MySQL setup and troubleshooting, see `README_MYSQL.md`.
-
-## License
+## 📄 License
 
 This project is for educational and organizational use.
 
-## Contributing
+## 🆘 Support
 
-1. Follow the existing code structure
-2. Add proper documentation
-3. Test changes thoroughly
-4. Update requirements.txt if adding new dependencies
+- **Web Issues**: Check `web_version/README_WEB.md`
+- **GUI Issues**: Check `gui_version/README_GUI.md`
+- **Database Issues**: Check `README_MYSQL.md`
+- **General Issues**: Check this README first

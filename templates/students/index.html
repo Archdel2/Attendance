@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}Students - COMSOC Attendance System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page header -->
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">
+            <i class="fas fa-users text-primary"></i>
+            Students
+        </h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group me-2">
+                <a href="{{ url_for('students.add') }}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-plus"></i> Add Student
+                </a>
+                <a href="{{ url_for('students.import_csv') }}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-upload"></i> Import CSV
+                </a>
+                <a href="{{ url_for('students.export_csv') }}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-download"></i> Export CSV
+                </a>
+                <a href="{{ url_for('students.generate_qr_codes') }}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-qrcode"></i> Generate QR Codes
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <form method="GET" action="{{ url_for('students.search') }}" class="d-flex">
+                <input type="text" name="q" class="form-control me-2" placeholder="Search students..." value="{{ search_query or '' }}">
+                <button type="submit" class="btn btn-outline-primary">
+                    <i class="fas fa-search"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Students Table -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-list"></i>
+                Student List ({{ students|length }} students)
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if students %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Student ID</th>
+                                <th>First Name</th>
+                                <th>Year Level</th>
+                                <th>Course</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in students %}
+                            <tr>
+                                <td><strong>{{ student.student_id }}</strong></td>
+                                <td>{{ student.fname }}</td>
+                                <td>
+                                    <span class="badge bg-info">{{ student.year_level }}</span>
+                                </td>
+                                <td>{{ student.course }}</td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ url_for('students.edit', student_id=student.student_id) }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                onclick="confirmDelete('{{ student.student_id }}', '{{ student.fname }}')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No students found</h5>
+                    <p class="text-muted">Get started by adding your first student.</p>
+                    <a href="{{ url_for('students.add') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add Student
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete student <strong id="studentName"></strong>?</p>
+                <p class="text-danger">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDelete(studentId, studentName) {
+    document.getElementById('studentName').textContent = studentName;
+    document.getElementById('deleteForm').action = "{{ url_for('students.delete', student_id='') }}" + studentId;
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+}
+</script>
+{% endblock %}

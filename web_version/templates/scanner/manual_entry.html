@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+
+{% block title %}Manual Entry - COMSOC Attendance System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page header -->
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">
+            <i class="fas fa-keyboard text-primary"></i>
+            Manual Attendance Entry
+        </h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <a href="{{ url_for('attendance.view_record', record_id=record.record_id) }}" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Attendance Record
+            </a>
+        </div>
+    </div>
+
+    <!-- Record Info -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle"></i>
+                        Manual Entry for: {{ record.record_name }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>Record:</strong> {{ record.record_name }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Event:</strong> {{ record.event.event_name }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manual Entry Form -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user-plus"></i>
+                        Mark Attendance
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="manualEntryForm">
+                        <div class="mb-3">
+                            <label for="student_id" class="form-label">Student ID *</label>
+                            <input type="text" class="form-control" id="student_id" name="student_id" required>
+                            <div class="form-text">Enter the student's ID (e.g., 2023-0001)</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="status" class="form-label">Status *</label>
+                            <select class="form-select" id="status" name="status" required>
+                                <option value="">Select Status</option>
+                                <option value="Present">Present</option>
+                                <option value="Absent">Absent</option>
+                                <option value="Excused">Excused</option>
+                            </select>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Mark Attendance
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-search"></i>
+                        Search Students
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <input type="text" class="form-control" id="searchStudent" placeholder="Search by name or ID...">
+                    </div>
+                    
+                    <div id="searchResults" class="list-group">
+                        <p class="text-muted text-center">Search for students to quickly fill the form</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Entries -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-history"></i>
+                        Recent Entries
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="recentEntries">
+                        <p class="text-muted text-center">No recent entries</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Result Modal -->
+<div class="modal fade" id="resultModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Entry Result</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="resultContent">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let recentEntries = [];
+let searchTimeout;
+
+document.getElementById('manualEntryForm').addEventListener('submit', handleManualEntry);
+document.getElementById('searchStudent').addEventListener('input', handleSearch);
+
+function handleManualEntry(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    
+    fetch('{{ url_for("scanner.manual_entry", record_id=record.record_id) }}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        showResult(data);
+        if (data.success) {
+            addRecentEntry(data.student, data.status);
+            e.target.reset();
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showResult({
+            success: false,
+            message: 'An error occurred while processing the entry.'
+        });
+    });
+}
+
+function handleSearch(e) {
+    const query = e.target.value.trim();
+    
+    clearTimeout(searchTimeout);
+    
+    if (query.length < 2) {
+        document.getElementById('searchResults').innerHTML = '<p class="text-muted text-center">Search for students to quickly fill the form</p>';
+        return;
+    }
+    
+    searchTimeout = setTimeout(() => {
+        fetch('{{ url_for("students.search") }}?q=' + encodeURIComponent(query))
+        .then(response => response.json())
+        .then(data => {
+            displaySearchResults(data.students);
+        })
+        .catch(error => {
+            console.error('Search error:', error);
+        });
+    }, 300);
+}
+
+function displaySearchResults(students) {
+    const container = document.getElementById('searchResults');
+    
+    if (students.length === 0) {
+        container.innerHTML = '<p class="text-muted text-center">No students found</p>';
+        return;
+    }
+    
+    container.innerHTML = students.map(student => `
+        <button type="button" class="list-group-item list-group-item-action" onclick="selectStudent('${student.student_id}', '${student.fname}')">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>${student.fname}</strong><br>
+                    <small class="text-muted">${student.student_id}</small>
+                </div>
+                <span class="badge bg-info">${student.year_level}</span>
+            </div>
+        </button>
+    `).join('');
+}
+
+function selectStudent(studentId, studentName) {
+    document.getElementById('student_id').value = studentId;
+    document.getElementById('searchStudent').value = '';
+    document.getElementById('searchResults').innerHTML = '<p class="text-muted text-center">Search for students to quickly fill the form</p>';
+}
+
+function showResult(result) {
+    const modal = new bootstrap.Modal(document.getElementById('resultModal'));
+    const content = document.getElementById('resultContent');
+    
+    if (result.success) {
+        content.innerHTML = `
+            <div class="text-center">
+                <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                <h5 class="text-success">Attendance Recorded!</h5>
+                <p><strong>Student:</strong> ${result.student.name}</p>
+                <p><strong>ID:</strong> ${result.student.id}</p>
+                <p><strong>Status:</strong> ${result.status}</p>
+                <p class="text-muted">${result.message}</p>
+            </div>
+        `;
+    } else {
+        content.innerHTML = `
+            <div class="text-center">
+                <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+                <h5 class="text-danger">Entry Failed</h5>
+                <p class="text-muted">${result.message}</p>
+            </div>
+        `;
+    }
+    
+    modal.show();
+}
+
+function addRecentEntry(student, status) {
+    recentEntries.unshift({
+        name: student.name,
+        id: student.id,
+        status: status,
+        time: new Date().toLocaleTimeString()
+    });
+    
+    // Keep only last 5 entries
+    if (recentEntries.length > 5) {
+        recentEntries = recentEntries.slice(0, 5);
+    }
+    
+    updateRecentEntriesDisplay();
+}
+
+function updateRecentEntriesDisplay() {
+    const container = document.getElementById('recentEntries');
+    
+    if (recentEntries.length === 0) {
+        container.innerHTML = '<p class="text-muted text-center">No recent entries</p>';
+        return;
+    }
+    
+    container.innerHTML = recentEntries.map(entry => `
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+                <strong>${entry.name}</strong><br>
+                <small class="text-muted">${entry.id}</small>
+            </div>
+            <div class="text-end">
+                <span class="badge ${getStatusBadgeClass(entry.status)}">${entry.status}</span><br>
+                <small class="text-muted">${entry.time}</small>
+            </div>
+        </div>
+    `).join('');
+}
+
+function getStatusBadgeClass(status) {
+    switch (status) {
+        case 'Present': return 'bg-success';
+        case 'Absent': return 'bg-danger';
+        case 'Excused': return 'bg-warning';
+        default: return 'bg-secondary';
+    }
+}
+</script>
+{% endblock %}

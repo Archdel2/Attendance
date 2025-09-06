@@ -1,7 +1,19 @@
+# Combined dependencies for both Web and GUI versions
+# For specific version dependencies, see web_version/requirements.txt and gui_version/requirements.txt
+
+# Web Version Dependencies
+Flask>=2.3.0
+Flask-SQLAlchemy>=3.0.0
+Werkzeug>=2.3.0
+
+# GUI Version Dependencies
 PyQt5>=5.15.0
 opencv-python>=4.8.0
 pyzbar>=0.1.9
 numpy>=1.24.0
+
+# Shared Dependencies
 PyMySQL>=1.1.0
 python-dotenv>=1.0.0
 openpyxl>=3.1.0
+qrcode>=7.4.0

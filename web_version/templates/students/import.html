@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Import Students - COMSOC Attendance System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page header -->
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">
+            <i class="fas fa-upload text-primary"></i>
+            Import Students
+        </h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <a href="{{ url_for('students.index') }}" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Students
+            </a>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-upload"></i>
+                        Import Students from CSV
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="file" class="form-label">CSV File *</label>
+                            <input type="file" class="form-control" id="file" name="file" accept=".csv" required>
+                            <div class="form-text">Select a CSV file with student data</div>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-info-circle"></i> CSV Format Requirements:</h6>
+                            <ul class="mb-0">
+                                <li>First row should be headers: Student ID, First Name, Year Level, Course</li>
+                                <li>Student ID must be unique</li>
+                                <li>Year Level options: 1st Year, 2nd Year, 3rd Year, 4th Year, 5th Year</li>
+                                <li>Course options: Computer Science, Information Technology, Computer Engineering, Software Engineering, Information Systems, Cybersecurity, Data Science</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="alert alert-warning">
+                            <h6><i class="fas fa-exclamation-triangle"></i> Important Notes:</h6>
+                            <ul class="mb-0">
+                                <li>Existing students with the same Student ID will be skipped</li>
+                                <li>Only valid CSV files will be processed</li>
+                                <li>Make sure your CSV file is properly formatted</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-upload"></i> Import Students
+                            </button>
+                            <a href="{{ url_for('students.index') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sample CSV -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-file-csv"></i>
+                        Sample CSV Format
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Student ID</th>
+                                    <th>First Name</th>
+                                    <th>Year Level</th>
+                                    <th>Course</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>2023-0001</td>
+                                    <td>John</td>
+                                    <td>1st Year</td>
+                                    <td>Computer Science</td>
+                                </tr>
+                                <tr>
+                                    <td>2023-0002</td>
+                                    <td>Jane</td>
+                                    <td>2nd Year</td>
+                                    <td>Information Technology</td>
+                                </tr>
+                                <tr>
+                                    <td>2023-0003</td>
+                                    <td>Mike</td>
+                                    <td>3rd Year</td>
+                                    <td>Computer Engineering</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

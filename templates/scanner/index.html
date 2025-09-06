@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}QR Scanner - COMSOC Attendance System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page header -->
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">
+            <i class="fas fa-qrcode text-primary"></i>
+            QR Scanner
+        </h1>
+    </div>
+
+    <!-- Scanner Options -->
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-qrcode"></i>
+                        QR Code Scanner
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Scan student QR codes to automatically mark attendance.</p>
+                    {% if records %}
+                        <form method="GET" action="{{ url_for('scanner.scan', record_id=1) }}">
+                            <div class="mb-3">
+                                <label for="record_id" class="form-label">Select Attendance Record</label>
+                                <select class="form-select" id="record_id" name="record_id" required>
+                                    <option value="">Choose a record...</option>
+                                    {% for record in records %}
+                                    <option value="{{ record.record_id }}">{{ record.record_name }} ({{ record.event.event_name }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-camera"></i> Start Scanner
+                            </button>
+                        </form>
+                    {% else %}
+                        <p class="text-muted">No attendance records available. Create an event first.</p>
+                        <a href="{{ url_for('events.add') }}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Create Event
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-keyboard"></i>
+                        Manual Entry
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Manually enter student IDs for attendance marking.</p>
+                    {% if records %}
+                        <form method="GET" action="{{ url_for('scanner.manual_entry', record_id=1) }}">
+                            <div class="mb-3">
+                                <label for="record_id_manual" class="form-label">Select Attendance Record</label>
+                                <select class="form-select" id="record_id_manual" name="record_id" required>
+                                    <option value="">Choose a record...</option>
+                                    {% for record in records %}
+                                    <option value="{{ record.record_id }}">{{ record.record_name }} ({{ record.event.event_name }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-outline-primary">
+                                <i class="fas fa-edit"></i> Manual Entry
+                            </button>
+                        </form>
+                    {% else %}
+                        <p class="text-muted">No attendance records available.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Mark Options -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-check-double"></i>
+                        Quick Mark Attendance
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Quickly mark attendance for multiple students at once.</p>
+                    {% if records %}
+                        <div class="row">
+                            {% for record in records %}
+                            <div class="col-md-4 mb-3">
+                                <div class="card border-primary">
+                                    <div class="card-body">
+                                        <h6 class="card-title">{{ record.record_name }}</h6>
+                                        <p class="card-text text-muted">{{ record.event.event_name }}</p>
+                                        <a href="{{ url_for('scanner.quick_mark', record_id=record.record_id) }}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-check"></i> Quick Mark
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No attendance records available for quick marking.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
