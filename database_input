@@ -1,0 +1,44 @@
+DROP DATABASE comsoc_attendance;
+CREATE DATABASE comsoc_attendance;
+USE comsoc_attendance;
+
+-- Table 1: Students (Masterlist)
+CREATE TABLE Students (
+    student_id VARCHAR(20) PRIMARY KEY, 
+    fname VARCHAR(50) NOT NULL,
+    year_level INT(1) NOT NULL,
+    course VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Table 2: Events
+CREATE TABLE Events (
+    event_id INT AUTO_INCREMENT PRIMARY KEY,
+    event_name VARCHAR(100) NOT NULL,
+    event_date DATE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Table 3: Attendance Records
+CREATE TABLE AttendanceRecords (
+    record_id INT AUTO_INCREMENT PRIMARY KEY,
+    record_name VARCHAR(100) NOT NULL,
+    event_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (event_id) REFERENCES Events(event_id) ON DELETE CASCADE
+);
+
+-- Table 4: Attendance (This table stores the actual attendance data with student details)
+CREATE TABLE Attendance (
+    attendance_id INT AUTO_INCREMENT PRIMARY KEY,
+    record_id INT NOT NULL,
+    student_id VARCHAR(20) NOT NULL,
+    student_fname VARCHAR(50) NOT NULL,
+    student_year_level VARCHAR(20) NOT NULL,
+    student_course VARCHAR(50) NOT NULL,
+    status ENUM('Present', 'Absent', 'Excused') DEFAULT 'Absent',
+    timestamp TIMESTAMP NULL,
+    FOREIGN KEY (record_id) REFERENCES AttendanceRecords(record_id) ON DELETE CASCADE,
+    FOREIGN KEY (student_id) REFERENCES Students(student_id) ON DELETE CASCADE,
+    UNIQUE KEY unique_attendance (record_id, student_id)
+);
