@@ -3,164 +3,179 @@
 {% block title %}Dashboard - COMSOC Attendance System{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <!-- Page header -->
-    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h2">
-            <i class="fas fa-tachometer-alt text-primary"></i>
-            Dashboard
-        </h1>
-        <div class="btn-toolbar mb-2 mb-md-0">
-            <div class="btn-group me-2">
-                <a href="{{ url_for('students.add') }}" class="btn btn-sm btn-outline-primary">
-                    <i class="fas fa-plus"></i> Add Student
-                </a>
-                <a href="{{ url_for('events.add') }}" class="btn btn-sm btn-outline-primary">
-                    <i class="fas fa-calendar-plus"></i> Add Event
-                </a>
+<style>
+    body {
+        font-family: 'Inter', sans-serif;
+        background: #FFF4DD;
+        color: #17100B;
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        overflow: hidden; /* no scroll */
+        display: flex;
+        flex-direction: column;
+    }
+
+    .dashboard {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        gap: 2rem; /* spacing between sections */
+        height: 100%;
+        padding: 1.5rem 2rem;
+        box-sizing: border-box;
+    }
+
+    /* Section titles */
+    .section-title {
+        font-weight: 900;
+        font-size: 1.6rem;
+        color: #F37B21;
+        font-style: italic;
+        margin: 0 0 1rem 0;
+    }
+
+    /* Stats cards */
+    .stats-container {
+        display: flex;
+        gap: 1.5rem;
+    }
+    .stats-card {
+        flex: 1;
+        background: linear-gradient(135deg, #fff, #F37B21);
+        border-radius: 16px;
+        padding: 1.2rem;
+        color: #17100B;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .stats-card h3 {
+        font-size: 3.5rem;
+        margin: 0;
+        font-weight: 900;
+        letter-spacing: -2px;
+    }
+    .stats-card p {
+        margin: 0;
+        font-size: 1rem;
+        font-style: italic;
+        font-weight: 600;
+    }
+    .stats-icon {
+        font-size: 2.5rem;
+        color: #17100B;
+    }
+
+    /* Recent events */
+    .recent-events-box {
+        background: #FFEFD6;
+        border-radius: 16px;
+        padding: 1rem 1.2rem;
+    }
+    .recent-events-box ul {
+        margin: 0;
+        padding-left: 1.2rem;
+    }
+    .recent-events-box p {
+        margin: 0;
+    }
+    .recent-events-footer {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 0.8rem;
+    }
+    .btn-orange {
+        background: #F37B21;
+        color: white;
+        border: none;
+        padding: 0.45rem 1rem;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+    }
+    .btn-orange:hover {
+        background: #d86615;
+    }
+
+    /* Shortcuts */
+    .shortcuts {
+        display: flex;
+        gap: 1rem;
+    }
+    .shortcut-btn {
+        flex: 1;
+        text-align: center;
+        padding: 0.8rem;
+        border: 2px solid #F37B21;
+        border-radius: 12px;
+        background: #FFF4DD;
+        font-weight: 600;
+        color: #17100B;
+        cursor: pointer;
+        transition: 0.2s;
+        text-decoration: none;
+    }
+    .shortcut-btn:hover {
+        background: #F37B21;
+        color: white;
+    }
+</style>
+
+<div class="dashboard">
+
+    <!-- Dashboard Section -->
+    <div>
+        <h2 class="section-title">Dashboard</h2>
+        <div class="stats-container">
+            <div class="stats-card">
+                <div>
+                    <p>Total Students</p>
+                    <h3>{{ total_students }}</h3>
+                </div>
+                <div class="stats-icon"><i class="fas fa-user-friends"></i></div>
+            </div>
+            <div class="stats-card">
+                <div>
+                    <p>Total Events</p>
+                    <h3>{{ total_events }}</h3>
+                </div>
+                <div class="stats-icon"><i class="far fa-calendar-alt"></i></div>
             </div>
         </div>
     </div>
 
-    <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card stats-card h-100">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-white-50 text-uppercase mb-1">
-                                Total Students
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-white">{{ total_students }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-users fa-2x text-white-50"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card stats-card h-100">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-white-50 text-uppercase mb-1">
-                                Total Events
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-white">{{ total_events }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-calendar-alt fa-2x text-white-50"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card stats-card h-100">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-white-50 text-uppercase mb-1">
-                                Today's Attendance
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-white">{{ today_attendance }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-clock fa-2x text-white-50"></i>
-                        </div>
-                    </div>
-                </div>
+    <!-- Recent Events Section -->
+    <div>
+        <h2 class="section-title">Recent Events</h2>
+        <div class="recent-events-box">
+            {% if recent_events %}
+                <ul>
+                    {% for event in recent_events %}
+                    <li>
+                        <strong>{{ event.event_name }}</strong> - {{ event.event_date.strftime('%B %d, %Y') }}
+                        <a href="{{ url_for('events.records', event_id=event.event_id) }}" class="btn-orange btn-sm">View</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No events found.</p>
+            {% endif %}
+            <div class="recent-events-footer">
+                <a href="{{ url_for('events.add') }}" class="btn-orange">+ Create Event</a>
             </div>
         </div>
     </div>
 
-    <!-- Recent Activities -->
-    <div class="row">
-        <!-- Recent Events -->
-        <div class="col-lg-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-calendar-alt text-primary"></i>
-                        Recent Events
-                    </h5>
-                </div>
-                <div class="card-body">
-                    {% if recent_events %}
-                        <div class="list-group list-group-flush">
-                            {% for event in recent_events %}
-                            <div class="list-group-item d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h6 class="mb-1">{{ event.event_name }}</h6>
-                                    <small class="text-muted">{{ event.event_date.strftime('%B %d, %Y') }}</small>
-                                </div>
-                                <div>
-                                    <a href="{{ url_for('events.records', event_id=event.event_id) }}" class="btn btn-sm btn-outline-primary">
-                                        <i class="fas fa-eye"></i> View
-                                    </a>
-                                </div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                        <div class="mt-3">
-                            <a href="{{ url_for('events.index') }}" class="btn btn-primary btn-sm">
-                                View All Events
-                            </a>
-                        </div>
-                    {% else %}
-                        <p class="text-muted">No events found.</p>
-                        <a href="{{ url_for('events.add') }}" class="btn btn-primary btn-sm">
-                            <i class="fas fa-plus"></i> Create First Event
-                        </a>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-
-    </div>
-
-    <!-- Quick Actions -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-bolt text-primary"></i>
-                        Quick Actions
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3 mb-3">
-                            <a href="{{ url_for('students.add') }}" class="btn btn-outline-primary w-100">
-                                <i class="fas fa-user-plus fa-2x mb-2"></i><br>
-                                Add Student
-                            </a>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <a href="{{ url_for('events.add') }}" class="btn btn-outline-primary w-100">
-                                <i class="fas fa-calendar-plus fa-2x mb-2"></i><br>
-                                Create Event
-                            </a>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <a href="{{ url_for('scanner.index') }}" class="btn btn-outline-primary w-100">
-                                <i class="fas fa-qrcode fa-2x mb-2"></i><br>
-                                QR Scanner
-                            </a>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
+    <!-- Shortcuts Section -->
+    <div>
+        <h2 class="section-title">Shortcuts</h2>
+        <div class="shortcuts">
+            <a href="{{ url_for('students.add') }}" class="shortcut-btn">Add Student</a>
+            <a href="{{ url_for('events.add') }}" class="shortcut-btn">Create Event</a>
+            <a href="{{ url_for('scanner.index') }}" class="shortcut-btn">QR Scanner</a>
         </div>
     </div>
 </div>

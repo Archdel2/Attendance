@@ -5,6 +5,11 @@ from datetime import datetime, timedelta
 main_bp = Blueprint('main', __name__)
 
 @main_bp.route('/')
+def landing():
+    """Landing page (first page)"""
+    return render_template('main/landing.html')
+
+@main_bp.route('/index')
 def index():
     """Main dashboard page"""
     # Get statistics

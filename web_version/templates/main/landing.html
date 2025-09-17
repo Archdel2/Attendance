@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>COMSOC Landing Page</title>
+  <!-- Link external CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main/landing.css') }}">
+</head>
+<body>
+  <!-- Glowing corners -->
+  <div class="corner top-left"></div>
+  <div class="corner bottom-right"></div>
+
+  <!-- Center content -->
+  <div class="container">
+    <!-- Logo -->
+    <img src="static/logo.png" alt="COMSOC Logo" class="logo">
+
+    <!-- COMSOC text -->
+    <div class="comsoc">COMSOC</div>
+
+    <!-- Button -->
+    <a href="{{ url_for('main.index') }}" class="start-btn">
+      Start taking attendance
+    </a>
+  </div>
+</body>
+</html>
