@@ -242,3 +242,47 @@ The application uses SQLAlchemy with automatic table creation. For production:
 
 ## License
 This project is for educational and organizational use.
+
+## Multi-user LAN Setup
+
+You can let multiple people use the app at the same time over your local network, and see updates instantly.
+
+### Option A (Recommended): One central web server
+- Run the web app on a single PC (the “server”) and have others connect via a browser.
+- Steps:
+  1. Connect all devices to the same router/Wi‑Fi.
+  2. Give the server PC a static IP in your router (e.g., 192.168.1.10).
+  3. Start the app on the server: `python run_web.py` (it binds to `0.0.0.0:5000`).
+  4. On other devices, open `http://<server_ip>:5000` (e.g., `http://192.168.1.10:5000`).
+  5. Allow inbound TCP 5000 on the server’s firewall.
+- Pros: Simple, one database, everyone sees the same data immediately.
+- Notes: For mobile camera access, some browsers require HTTPS. Consider putting Flask behind a reverse proxy with TLS (e.g., Caddy/NGINX) if needed.
+
+### Option B: Each user runs the app, all connect to your MySQL
+- Your MySQL runs on the server PC; friends’ apps point to it.
+- Steps (server):
+  1. Configure MySQL to listen on LAN (e.g., `bind-address=0.0.0.0`).
+  2. Create a LAN user and grant access:
+     ```sql
+     CREATE USER 'comsoc'@'192.168.%' IDENTIFIED BY 'strong_pw';
+     GRANT ALL PRIVILEGES ON comsoc_attendance.* TO 'comsoc'@'192.168.%';
+     FLUSH PRIVILEGES;
+     ```
+  3. Open inbound TCP 3306 on the server firewall.
+- Steps (clients):
+  - In `.env`, set:
+    ```env
+    DB_HOST=<server_ip>
+    DB_PORT=3306
+    DB_NAME=comsoc_attendance
+    DB_USER=comsoc
+    DB_PASSWORD=strong_pw
+    ```
+  - Run the app locally; all reads/writes go to the server’s DB.
+- Pros: Users can run their own instance.
+- Cons: More moving parts, network hiccups affect DB calls; not recommended unless necessary.
+
+### Security Tips
+- Use strong passwords for the database user.
+- Keep MySQL port closed to the internet; allow only LAN.
+- Prefer Option A for simplicity and fewer exposure points.

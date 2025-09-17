@@ -80,8 +80,12 @@ def manual_entry(record_id):
     
     if request.method == 'POST':
         student_id = request.form.get('student_id')
+        status = request.form.get('status', 'Present')
         
         if not student_id:
+            # Support JSON response for web version
+            if 'application/json' in (request.headers.get('Accept') or ''):
+                return jsonify({'success': False, 'message': 'Student ID is required'})
             flash('Student ID is required', 'error')
             return redirect(url_for('scanner.manual_entry', record_id=record_id))
         
@@ -89,6 +93,8 @@ def manual_entry(record_id):
         student = Student.query.filter_by(student_id=student_id).first()
         
         if not student:
+            if 'application/json' in (request.headers.get('Accept') or ''):
+                return jsonify({'success': False, 'message': 'Student not found'})
             flash('Student not found', 'error')
             return redirect(url_for('scanner.manual_entry', record_id=record_id))
         
@@ -103,20 +109,34 @@ def manual_entry(record_id):
                 student_fname=student.fname,
                 student_year_level=student.year_level,
                 student_course=student.course,
-                status='Present',
+                status=status,
                 timestamp=datetime.now()
             )
             db.session.add(attendance)
         else:
             # Update existing attendance
-            attendance.status = 'Present'
+            attendance.status = status
             attendance.timestamp = datetime.now()
         
         try:
             db.session.commit()
+            if 'application/json' in (request.headers.get('Accept') or ''):
+                return jsonify({
+                    'success': True,
+                    'message': f'Attendance recorded for {student.fname}',
+                    'student': {
+                        'id': student.student_id,
+                        'name': student.fname,
+                        'year_level': student.year_level,
+                        'course': student.course
+                    },
+                    'status': attendance.status
+                })
             flash(f'Attendance recorded for {student.fname}', 'success')
         except Exception as e:
             db.session.rollback()
+            if 'application/json' in (request.headers.get('Accept') or ''):
+                return jsonify({'success': False, 'message': f'Error recording attendance: {str(e)}'})
             flash(f'Error recording attendance: {str(e)}', 'error')
         
         return redirect(url_for('scanner.manual_entry', record_id=record_id))

@@ -3,89 +3,59 @@
 {% block title %}Event Records - COMSOC Attendance System{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <!-- Page header -->
-    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h2">
-            <i class="fas fa-clipboard-list text-primary"></i>
-            Attendance Records for {{ event.event_name }}
-        </h1>
-        <div class="btn-toolbar mb-2 mb-md-0">
-            <a href="{{ url_for('events.index') }}" class="btn btn-sm btn-outline-secondary">
-                <i class="fas fa-arrow-left"></i> Back to Events
-            </a>
+<style>
+    h2.section-title {font-weight:900;font-size:2rem;color:#f97316;font-style:italic;text-align:left}
+    .header-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .card-like{background:#fff;border-radius:16px;box-shadow:0 4px 12px rgba(0,0,0,.08);overflow:hidden;margin-bottom:16px}
+    .card-like-header{padding:12px 16px;border-bottom:2px solid #f97316;background:#fff}
+    .btn-primary-gradient{background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;border:none;padding:10px 16px;border-radius:12px;font-weight:600}
+    table{width:100%;border-collapse:separate;border-spacing:0}
+    thead{background:#f97316;color:#fff}
+    thead th{padding:14px;font-weight:700;text-transform:uppercase;font-size:14px;letter-spacing:.5px;text-align:left}
+    thead th.th-actions{text-align:right}
+    tbody tr:nth-child(even){background:#fff8f1}
+    tbody tr:hover{background:#ffe1c7}
+    tbody td{padding:14px;vertical-align:middle;border-bottom:1px solid #f2f2f2;text-align:left}
+    .actions{text-align:right;white-space:nowrap}
+    .action-btn{padding:8px 12px;border-radius:10px;border:2px solid transparent;transition:all .3s;margin-left:6px;font-size:14px}
+    .btn-view{background:linear-gradient(135deg,#4299e1 0%,#3182ce 100%);color:#fff}
+    .btn-warning-grad{color:#fff;background:linear-gradient(135deg,#f59e0b,#d97706)}
+    .btn-success-grad{color:#fff;background:linear-gradient(135deg,#10b981,#059669)}
+    .btn-info-grad{color:#fff;background:linear-gradient(135deg,#06b6d4,#0ea5e9)}
+    /* Modal */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:1000}
+    .modal-card{background:#fff;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.2);width:100%;max-width:520px;overflow:hidden}
+    .modal-header{padding:12px 16px;border-bottom:2px solid #f97316}
+    .modal-body{padding:16px}
+    .modal-footer{padding:12px 16px;display:flex;justify-content:flex-end;gap:8px}
+    .btn-cancel{border:2px solid #f97316;color:#f97316;border-radius:12px;padding:10px 16px;font-weight:600;background:#fff}
+    .btn-cancel:hover{background:#fff8f1}
+    .hidden{display:none}
+    .ms-auto{margin-left:auto}
+</style>
+
+<div class="main-container">
+    <div class="header-row mb-3">
+        <div class="d-flex align-items-center" style="gap:10px">
+            <a href="{{ url_for('events.index') }}" class="btn btn-outline-orange"><i class="fas fa-arrow-left me-2"></i>Back</a>
+            <h2 class="section-title mb-0">Attendance Records for {{ event.event_name }}</h2>
         </div>
+        <button type="button" class="btn btn-primary-gradient" onclick="toggleAddRecordModal(true)"><i class="fas fa-plus me-2"></i>Add Record</button>
     </div>
 
-    <!-- Event Info -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-info-circle"></i>
-                        Event Information
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <strong>Event Name:</strong> {{ event.event_name }}
-                        </div>
-                        <div class="col-md-6">
-                            <strong>Event Date:</strong> {{ event.event_date.strftime('%B %d, %Y') }}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Removed Event Information and inline form; Add Record via modal button at header -->
 
-    <!-- Add New Record -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-plus"></i>
-                        Add New Attendance Record
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <form method="POST" action="{{ url_for('events.add_record', event_id=event.event_id) }}">
-                        <div class="row">
-                            <div class="col-md-8">
-                                <input type="text" class="form-control" name="record_name" placeholder="Enter record name (e.g., Morning Session, Afternoon Session)" required>
-                            </div>
-                            <div class="col-md-4">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-plus"></i> Create Record
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Records List -->
-    <div class="card">
-        <div class="card-header">
-            <h5 class="card-title mb-0">
-                <i class="fas fa-list"></i>
-                Attendance Records ({{ records|length }} records)
-            </h5>
-        </div>
-        <div class="card-body">
+    <div class="card-like">
+        <div class="card-like-header"><strong><i class="fas fa-list me-2"></i>Attendance Records ({{ records|length }} records)</strong></div>
+        <div class="p-0">
             {% if records %}
                 <div class="table-responsive">
-                    <table class="table table-hover">
+                    <table class="table table-hover mb-0">
                         <thead>
                             <tr>
                                 <th>Record Name</th>
                                 <th>Created</th>
-                                <th>Actions</th>
+                                <th class="th-actions">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -93,25 +63,19 @@
                             <tr>
                                 <td><strong>{{ record.record_name }}</strong></td>
                                 <td>{{ record.created_at.strftime('%B %d, %Y %H:%M') }}</td>
-                                <td>
-                                    <div class="btn-group" role="group">
-                                        <a href="{{ url_for('attendance.view_record', record_id=record.record_id) }}" class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-eye"></i> View
-                                        </a>
-                                        <a href="{{ url_for('scanner.manual_entry', record_id=record.record_id) }}" class="btn btn-sm btn-outline-warning">
-                                            <i class="fas fa-keyboard"></i> Manual Entry
-                                        </a>
-                                        <a href="{{ url_for('scanner.quick_mark', record_id=record.record_id) }}" class="btn btn-sm btn-outline-success">
-                                            <i class="fas fa-check"></i> Quick Mark
-                                        </a>
-                                        <a href="{{ url_for('scanner.scan', record_id=record.record_id) }}" class="btn btn-sm btn-outline-info">
-                                            <i class="fas fa-qrcode"></i> Scanner
-                                        </a>
-                                        <button type="button" class="btn btn-sm btn-outline-danger" 
-                                                onclick="confirmDelete('{{ record.record_id }}', '{{ record.record_name }}')">
-                                            <i class="fas fa-trash"></i> Delete
-                                        </button>
-                                    </div>
+                                <td class="actions">
+                                    <a href="{{ url_for('attendance.view_record', record_id=record.record_id) }}" class="btn btn-sm action-btn btn-view" title="View">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('scanner.manual_entry', record_id=record.record_id) }}" class="btn btn-sm action-btn btn-warning-grad" title="Manual Entry">
+                                        <i class="fas fa-keyboard"></i>
+                                    </a>
+                                    <a href="{{ url_for('scanner.quick_mark', record_id=record.record_id) }}" class="btn btn-sm action-btn btn-success-grad" title="Quick Mark">
+                                        <i class="fas fa-check"></i>
+                                    </a>
+                                    <a href="{{ url_for('scanner.scan', record_id=record.record_id) }}" class="btn btn-sm action-btn btn-info-grad" title="Scanner">
+                                        <i class="fas fa-qrcode"></i>
+                                    </a>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -129,35 +93,35 @@
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Confirm Delete</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Are you sure you want to delete attendance record <strong id="recordName"></strong>?</p>
-                <p class="text-danger">This will also delete all associated attendance entries.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <form id="deleteForm" method="POST" style="display: inline;">
-                    <button type="submit" class="btn btn-danger">Delete</button>
-                </form>
-            </div>
+<!-- Add Record Modal -->
+<div id="addRecordModal" class="modal-overlay">
+    <div class="modal-card">
+        <div class="modal-header"><strong><i class="fas fa-plus me-2"></i>Add Attendance Record</strong></div>
+        <div class="modal-body">
+            <form id="addRecordForm" method="POST" action="{{ url_for('events.add_record', event_id=event.event_id) }}">
+                <div class="mb-3">
+                    <label class="form-label" for="record_name">Record Name</label>
+                    <input type="text" id="record_name" name="record_name" class="form-control" placeholder="e.g., Morning Session" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-cancel" onclick="toggleAddRecordModal(false)">Cancel</button>
+                    <button type="submit" class="btn btn-primary-gradient">Create Record</button>
+                </div>
+            </form>
         </div>
     </div>
+    
 </div>
+
 {% endblock %}
 
 {% block extra_js %}
 <script>
-function confirmDelete(recordId, recordName) {
-    document.getElementById('recordName').textContent = recordName;
-    document.getElementById('deleteForm').action = `/events/records/${recordId}/delete`;
-    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+function toggleAddRecordModal(show){
+    document.getElementById('addRecordModal').style.display = show ? 'flex' : 'none';
 }
+document.getElementById('addRecordModal').addEventListener('click', function(e){
+    if(e.target === this){ toggleAddRecordModal(false); }
+});
 </script>
 {% endblock %}

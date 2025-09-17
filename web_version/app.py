@@ -2,15 +2,21 @@ from flask import Flask, render_template, redirect, url_for, flash, request, jso
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import os
-from dotenv import load_dotenv
+import sys
+from dotenv import load_dotenv, find_dotenv
 import qrcode
 import io
 import base64
 from werkzeug.utils import secure_filename
 import csv
 
-# Load environment variables
-load_dotenv()
+# Ensure this directory is on the Python path so imports work no matter where you run from
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+if CURRENT_DIR not in sys.path:
+    sys.path.insert(0, CURRENT_DIR)
+
+# Load environment variables from nearest .env (project root or web_version)
+load_dotenv(find_dotenv())
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -30,6 +36,7 @@ from blueprints.students import students_bp
 from blueprints.events import events_bp
 from blueprints.attendance import attendance_bp
 from blueprints.scanner import scanner_bp
+from blueprints.reports import reports_bp
 
 # Register blueprints
 app.register_blueprint(main_bp)
@@ -37,6 +44,7 @@ app.register_blueprint(students_bp, url_prefix='/students')
 app.register_blueprint(events_bp, url_prefix='/events')
 app.register_blueprint(attendance_bp, url_prefix='/attendance')
 app.register_blueprint(scanner_bp, url_prefix='/scanner')
+app.register_blueprint(reports_bp, url_prefix='/reports')
 
 # Create database tables
 with app.app_context():

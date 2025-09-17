@@ -3,136 +3,83 @@
 {% block title %}QR Scanner - COMSOC Attendance System{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <!-- Page header -->
-    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h2">
-            <i class="fas fa-qrcode text-primary"></i>
-            QR Code Scanner
-        </h1>
-        <div class="btn-toolbar mb-2 mb-md-0">
-            <a href="{{ url_for('attendance.view_record', record_id=record.record_id) }}" class="btn btn-sm btn-outline-secondary">
-                <i class="fas fa-arrow-left"></i> Back to Attendance Record
-            </a>
-        </div>
+<style>
+    h2.section-title{font-weight:900;font-size:2rem;color:#f97316;font-style:italic;text-align:left}
+    .card-like{background:#fff;border-radius:16px;box-shadow:0 4px 12px rgba(0,0,0,.08);overflow:hidden;margin-bottom:16px}
+    .card-like-header{padding:12px 16px;border-bottom:2px solid #f97316;background:#fff}
+    .btn-primary-gradient{background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;border:none;padding:10px 16px;border-radius:12px;font-weight:600}
+    .btn-danger-grad{background:linear-gradient(135deg,#f56565,#e53e3e);color:#fff;border:none;padding:10px 16px;border-radius:12px;font-weight:600}
+    .placeholder{border:2px dashed #f97316;border-radius:12px;padding:24px;background:#fff8f1}
+    .result-box{border-radius:12px;padding:12px;margin-top:12px}
+    .result-success{background:#ecfdf5;color:#065f46}
+    .result-error{background:#fef2f2;color:#991b1b}
+</style>
+
+<div class="main-container">
+    <div class="d-flex align-items-center mb-3" style="gap:10px">
+        <a href="{{ url_for('attendance.view_record', record_id=record.record_id) }}" class="btn btn-outline-orange"><i class="fas fa-arrow-left me-2"></i>Back</a>
+        <h2 class="section-title mb-0">QR Code Scanner</h2>
     </div>
 
-    <!-- Record Info -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-info-circle"></i>
-                        Scanning for: {{ record.record_name }}
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <strong>Record:</strong> {{ record.record_name }}
-                        </div>
-                        <div class="col-md-6">
-                            <strong>Event:</strong> {{ record.event.event_name }}
-                        </div>
-                    </div>
-                </div>
+    <div class="card-like">
+        <div class="card-like-header"><strong><i class="fas fa-info-circle me-2"></i>Scanning for: {{ record.record_name }}</strong></div>
+        <div class="p-3">
+            <div class="row g-2">
+                <div class="col-md-6"><strong>Record:</strong> {{ record.record_name }}</div>
+                <div class="col-md-6"><strong>Event:</strong> {{ record.event.event_name }}</div>
             </div>
         </div>
     </div>
 
-    <!-- Scanner Interface -->
-    <div class="row">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-camera"></i>
-                        Camera Scanner
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div id="scanner-container" class="text-center">
-                        <div id="camera-placeholder" class="border rounded p-5 bg-light">
-                            <i class="fas fa-camera fa-3x text-muted mb-3"></i>
-                            <h5>Camera Scanner</h5>
-                            <p class="text-muted">Click the button below to start the camera scanner</p>
-                            <button id="start-scanner" class="btn btn-primary">
-                                <i class="fas fa-play"></i> Start Scanner
-                            </button>
-                        </div>
-                        <video id="video" style="display: none; width: 100%; max-width: 640px;" autoplay></video>
-                        <canvas id="canvas" style="display: none;"></canvas>
+    <div class="d-flex justify-content-center">
+        <div class="card-like" style="max-width: 800px; width: 100%;">
+            <div class="card-like-header"><strong><i class="fas fa-camera me-2"></i>Camera Scanner</strong></div>
+            <div class="p-3 text-center">
+                <div id="scanner-container">
+                    <div id="camera-placeholder" class="placeholder">
+                        <i class="fas fa-camera fa-3x mb-2" style="color:#f97316"></i>
+                        <p class="mb-3">Click Start to activate your camera</p>
+                        <button id="start-scanner" class="btn btn-primary-gradient"><i class="fas fa-play me-2"></i>Start Scanner</button>
                     </div>
-                    
-                    <div class="mt-3 text-center">
-                        <button id="stop-scanner" class="btn btn-danger" style="display: none;">
-                            <i class="fas fa-stop"></i> Stop Scanner
-                        </button>
-                    </div>
+                    <video id="video" style="display:none;width:100%;max-width:640px;border-radius:12px;margin:0 auto" autoplay></video>
+                    <canvas id="canvas" style="display:none;"></canvas>
                 </div>
+                <div class="mt-3">
+                    <button id="stop-scanner" class="btn btn-danger-grad" style="display:none"><i class="fas fa-stop me-2"></i>Stop Scanner</button>
+                </div>
+                <div id="scan-result" class="result-box" style="display:none"></div>
             </div>
         </div>
-        
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-info"></i>
-                        Instructions
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <ol>
-                        <li>Click "Start Scanner" to activate your camera</li>
+    </div>
+
+    <div class="row g-3 mt-0">
+        <div class="col-md-6">
+            <div class="card-like">
+                <div class="card-like-header"><strong><i class="fas fa-info me-2"></i>Instructions</strong></div>
+                <div class="p-3">
+                    <ol class="mb-3">
+                        <li>Click Start to activate your camera</li>
                         <li>Point the camera at a student's QR code</li>
-                        <li>The scanner will automatically detect and process the QR code</li>
-                        <li>Attendance will be marked automatically</li>
-                        <li>Click "Stop Scanner" when finished</li>
+                        <li>Scanning runs continuously and marks attendance automatically</li>
+                        <li>Click Stop when finished</li>
                     </ol>
-                    
-                    <div class="alert alert-info">
-                        <h6><i class="fas fa-lightbulb"></i> Tips:</h6>
+                    <div class="result-box" style="background:#fff8f1;color:#7c2d12">
+                        <strong><i class="fas fa-lightbulb me-2"></i>Tips</strong>
                         <ul class="mb-0">
                             <li>Ensure good lighting</li>
                             <li>Hold the QR code steady</li>
-                            <li>Keep the QR code within the camera frame</li>
+                            <li>Keep the QR within the frame</li>
                         </ul>
                     </div>
                 </div>
             </div>
-            
-            <!-- Recent Scans -->
-            <div class="card mt-3">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-history"></i>
-                        Recent Scans
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div id="recent-scans">
-                        <p class="text-muted text-center">No scans yet</p>
-                    </div>
-                </div>
-            </div>
         </div>
-    </div>
-</div>
-
-<!-- Scan Result Modal -->
-<div class="modal fade" id="scanResultModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Scan Result</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body" id="scanResultContent">
-                <!-- Content will be populated by JavaScript -->
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <div class="col-md-6">
+            <div class="card-like">
+                <div class="card-like-header"><strong><i class="fas fa-history me-2"></i>Recent Scans</strong></div>
+                <div class="p-3" id="recent-scans">
+                    <p class="text-muted mb-0">No scans yet</p>
+                </div>
             </div>
         </div>
     </div>
@@ -245,32 +192,16 @@ function processQRCode(qrData) {
     });
 }
 
-function showScanResult(result) {
-    const modal = new bootstrap.Modal(document.getElementById('scanResultModal'));
-    const content = document.getElementById('scanResultContent');
-    
-    if (result.success) {
-        content.innerHTML = `
-            <div class="text-center">
-                <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
-                <h5 class="text-success">Attendance Recorded!</h5>
-                <p><strong>Student:</strong> ${result.student.name}</p>
-                <p><strong>ID:</strong> ${result.student.id}</p>
-                <p><strong>Course:</strong> ${result.student.course}</p>
-                <p class="text-muted">${result.message}</p>
-            </div>
-        `;
+function showScanResult(result){
+    const box=document.getElementById('scan-result');
+    if(result.success){
+        box.className='result-box result-success';
+        box.innerHTML=`<strong>Attendance Recorded!</strong><br><small>${result.student.name} (${result.student.id}) - ${result.student.course}</small>`;
     } else {
-        content.innerHTML = `
-            <div class="text-center">
-                <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
-                <h5 class="text-danger">Scan Failed</h5>
-                <p class="text-muted">${result.message}</p>
-            </div>
-        `;
+        box.className='result-box result-error';
+        box.innerHTML=`<strong>Scan Failed</strong><br><small>${result.message}</small>`;
     }
-    
-    modal.show();
+    box.style.display='block';
 }
 
 function addRecentScan(student) {

@@ -6,7 +6,8 @@
   <title>{% block title %}COMSOC Attendance System{% endblock %}</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
   <style>
     :root{
@@ -35,7 +36,6 @@
       padding:34px 20px;
       display:flex;
       flex-direction:column;
-      border-right:4px solid var(--orange);
     }
 
     .sidebar-logo{
@@ -101,9 +101,8 @@
       .layout{grid-template-columns:280px 1fr}
       .sidebar-logo img{width:240px}
     }
-
-    {% block extra_css %}{% endblock %}
   </style>
+  {% block extra_css %}{% endblock %}
 </head>
 <body>
   <div class="layout">

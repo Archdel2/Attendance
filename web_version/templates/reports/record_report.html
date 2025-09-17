@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Record Report - {{ record.record_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">
+            <i class="fas fa-clipboard-check text-primary"></i>
+            {{ record.record_name }} - Report
+        </h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <a href="{{ url_for('reports.export_record_csv', record_id=record.record_id) }}" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-file-csv"></i> CSV
+            </a>
+            <a href="{{ url_for('reports.export_record_excel', record_id=record.record_id) }}" class="btn btn-sm btn-outline-success ms-2">
+                <i class="fas fa-file-excel"></i> Excel
+            </a>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card stats-card h-100"><div class="card-body"><h6>Total Students</h6><h3>{{ total_students }}</h3></div></div>
+        </div>
+        <div class="col-md-3">
+            <div class="card h-100"><div class="card-body text-center"><h6 class="text-success">Present</h6><h3 class="text-success">{{ present_count }}</h3></div></div>
+        </div>
+        <div class="col-md-3">
+            <div class="card h-100"><div class="card-body text-center"><h6 class="text-danger">Absent</h6><h3 class="text-danger">{{ absent_count }}</h3></div></div>
+        </div>
+        <div class="col-md-3">
+            <div class="card h-100"><div class="card-body text-center"><h6 class="text-warning">Excused</h6><h3 class="text-warning">{{ excused_count }}</h3></div></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><h5 class="card-title mb-0"><i class="fas fa-list"></i> Attendance List</h5></div>
+        <div class="card-body">
+            {% if attendances %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Student ID</th>
+                            <th>Name</th>
+                            <th>Year Level</th>
+                            <th>Course</th>
+                            <th>Status</th>
+                            <th>Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in attendances %}
+                        <tr>
+                            <td><strong>{{ a.student_id }}</strong></td>
+                            <td>{{ a.student_fname }}</td>
+                            <td><span class="badge bg-info">{{ a.student_year_level }}</span></td>
+                            <td>{{ a.student_course }}</td>
+                            <td>
+                                {% if a.status == 'Present' %}
+                                    <span class="badge bg-success">Present</span>
+                                {% elif a.status == 'Absent' %}
+                                    <span class="badge bg-danger">Absent</span>
+                                {% elif a.status == 'Excused' %}
+                                    <span class="badge bg-warning">Excused</span>
+                                {% endif %}
+                            </td>
+                            <td>{% if a.timestamp %}{{ a.timestamp.strftime('%B %d, %Y %H:%M') }}{% else %}<span class="text-muted">-</span>{% endif %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted">No attendance data found for this record.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+

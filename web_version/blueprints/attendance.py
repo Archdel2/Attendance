@@ -21,7 +21,7 @@ def view_record(record_id):
     record = AttendanceRecord.query.get_or_404(record_id)
     attendances = Attendance.query.filter_by(record_id=record_id).order_by(Attendance.student_id).all()
     
-    return render_template('attendance/view_record.html', record=record, attendances=attendances)
+    return render_template('attendance/view_record.html', record=record, attendances=attendances, status_filter='all')
 
 @attendance_bp.route('/record/<int:record_id>/update', methods=['POST'])
 def update_attendance(record_id):
@@ -209,7 +209,7 @@ def search_attendance(record_id):
     else:
         attendances = Attendance.query.filter_by(record_id=record_id).order_by(Attendance.student_id).all()
     
-    return render_template('attendance/view_record.html', record=record, attendances=attendances, search_query=query)
+    return render_template('attendance/view_record.html', record=record, attendances=attendances, search_query=query, status_filter='all')
 
 @attendance_bp.route('/record/<int:record_id>/filter')
 def filter_attendance(record_id):

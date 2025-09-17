@@ -210,5 +210,17 @@ def search():
         ).order_by(Student.student_id).all()
     else:
         students = Student.query.order_by(Student.student_id).all()
-    
+    # If client expects JSON (web version fetch), return JSON list
+    if 'application/json' in (request.headers.get('Accept') or ''):
+        return jsonify({
+            'success': True,
+            'students': [
+                {
+                    'student_id': s.student_id,
+                    'fname': s.fname,
+                    'year_level': s.year_level,
+                    'course': s.course
+                } for s in students
+            ]
+        })
     return render_template('students/index.html', students=students, search_query=query)

@@ -3,9 +3,11 @@ from models import Student, db
 from werkzeug.utils import secure_filename
 import csv
 import io
-import qrcode
 import os
 from datetime import datetime
+import qrcode
+from qrcode.constants import ERROR_CORRECT_H
+from PIL import Image, ImageDraw
 
 students_bp = Blueprint('students', __name__)
 
@@ -172,29 +174,88 @@ def export_csv():
 
 @students_bp.route('/qr-codes')
 def generate_qr_codes():
-    """Generate QR codes for all students"""
+    """Generate QR codes for all students, organized by course and year level"""
     students = Student.query.order_by(Student.student_id).all()
     
-    # Create QR codes directory
-    qr_dir = 'static/qr_codes'
-    os.makedirs(qr_dir, exist_ok=True)
+    # Base directory for QR codes
+    base_qr_dir = 'static/qr_codes'
+    os.makedirs(base_qr_dir, exist_ok=True)
+    logo_path = os.path.join('web_version/static', 'logo.png')
     
     generated_count = 0
     for student in students:
-        # Generate QR code
-        qr = qrcode.QRCode(version=1, box_size=10, border=5)
+        # Create course directory if it doesn't exist
+        course_dir = os.path.join(base_qr_dir, student.course)
+        os.makedirs(course_dir, exist_ok=True)
+        
+        # Create year level directory inside course directory
+        year_dir = os.path.join(course_dir, f"Year_{student.year_level}")
+        os.makedirs(year_dir, exist_ok=True)
+        
+        # Generate QR code with high error correction to allow center logo
+        # Use a higher fixed version and larger quiet zone to keep large center logo scannable
+        qr = qrcode.QRCode(
+            version=10,  # higher module count accommodates 30% center cutout
+            error_correction=ERROR_CORRECT_H,
+            box_size=10,
+            border=6,    # larger quiet zone improves scanner detection
+        )
         qr.add_data(student.student_id)
-        qr.make(fit=True)
-        
-        # Create image
-        img = qr.make_image(fill_color="black", back_color="white")
-        
-        # Save image
-        img_path = os.path.join(qr_dir, f'{student.student_id}.png')
-        img.save(img_path)
+        qr.make(fit=False)
+
+        # Create base QR image (RGB)
+        img = qr.make_image(fill_color="black", back_color="white").convert('RGB')
+
+        # Overlay logo at center if available
+        try:
+            if os.path.exists(logo_path):
+                logo = Image.open(logo_path).convert("RGBA")
+
+                # Compute logo size: ~30% of QR width (bigger logo)
+                qr_width, qr_height = img.size
+                target_logo_width = int(qr_width * 0.30)
+                aspect = logo.width / logo.height if logo.height else 1
+                new_logo_width = target_logo_width
+                new_logo_height = int(target_logo_width / aspect)
+                logo = logo.resize((new_logo_width, new_logo_height), Image.LANCZOS)
+
+                # Small white margin cutout around the logo to improve readability (smaller than before)
+                margin = max(2, qr_width // 200)
+                cutout_left = (qr_width - new_logo_width) // 2 - margin
+                cutout_top = (qr_height - new_logo_height) // 2 - margin
+                cutout_right = cutout_left + new_logo_width + margin * 2
+                cutout_bottom = cutout_top + new_logo_height + margin * 2
+
+                draw = ImageDraw.Draw(img)
+                try:
+                    draw.rounded_rectangle(
+                        [(cutout_left, cutout_top), (cutout_right, cutout_bottom)],
+                        radius=max(2, new_logo_width // 20),
+                        fill=(255, 255, 255)
+                    )
+                except Exception:
+                    draw.rectangle(
+                        [(cutout_left, cutout_top), (cutout_right, cutout_bottom)],
+                        fill=(255, 255, 255)
+                    )
+
+                # Compute position to center the logo and paste
+                pos = (
+                    (qr_width - new_logo_width) // 2,
+                    (qr_height - new_logo_height) // 2,
+                )
+
+                img.paste(logo, pos, mask=logo)
+        except Exception as e:
+            # If anything fails, proceed with plain QR to avoid interrupting generation
+            pass
+
+        # Save image in the appropriate course/year directory
+        img_path = os.path.join(year_dir, f'{student.student_id}.png')
+        img.save(img_path, format='PNG')
         generated_count += 1
     
-    flash(f'{generated_count} QR codes generated successfully', 'success')
+    flash(f'{generated_count} QR codes generated successfully and organized by course/year level', 'success')
     return redirect(url_for('students.index'))
 
 @students_bp.route('/search')

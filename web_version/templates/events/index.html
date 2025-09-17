@@ -3,108 +3,124 @@
 {% block title %}Events - COMSOC Attendance System{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <!-- Page header -->
-    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h2">
-            <i class="fas fa-calendar-alt text-primary"></i>
-            Events
-        </h1>
-        <div class="btn-toolbar mb-2 mb-md-0">
-            <a href="{{ url_for('events.add') }}" class="btn btn-sm btn-primary">
-                <i class="fas fa-plus"></i> Add Event
-            </a>
-        </div>
+<style>
+    h2.section-title {font-weight:900;font-size:2rem;color:#f97316;font-style:italic;text-align:left}
+    .header-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .btn-primary-gradient{background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;border:none;padding:10px 16px;border-radius:12px;font-weight:600;transition:all .2s ease;text-decoration:none}
+    .btn-circle{background:#f97316;color:#fff;border-radius:12px;width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;margin-left:6px;transition:all .2s ease}
+    .btn-circle:hover{background:#ea580c}
+    .table-container{width:100%;max-width:1100px;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.08);margin:0 auto}
+    .table-toolbar{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#fff;border-bottom:2px solid #f97316}
+    /* Modal */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:1000}
+    .modal-card{background:#fff;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.2);width:100%;max-width:520px;overflow:hidden}
+    .modal-header{padding:12px 16px;border-bottom:2px solid #f97316}
+    .modal-body{padding:16px}
+    .modal-footer{padding:12px 16px;display:flex;justify-content:flex-end;gap:8px}
+    .btn-cancel{border:2px solid #f97316;color:#f97316;border-radius:12px;padding:10px 16px;font-weight:600;background:#fff}
+    .btn-cancel:hover{background:#fff8f1}
+    .hidden{display:none}
+    .ms-auto{margin-left:auto}
+    table{width:100%;border-collapse:separate;border-spacing:0}
+    thead{background:#f97316;color:#fff}
+    thead th{padding:14px;font-weight:700;text-transform:uppercase;font-size:14px;letter-spacing:.5px;text-align:left}
+    thead th.th-actions{text-align:right}
+    tbody tr:nth-child(even){background:#fff8f1}
+    tbody tr:hover{background:#ffe1c7}
+    tbody td{padding:14px;vertical-align:middle;border-bottom:1px solid #f2f2f2;text-align:left}
+    .actions{text-align:right;white-space:nowrap}
+    .action-btn{padding:8px 12px;border-radius:10px;border:2px solid transparent;transition:all .3s;margin-left:6px;font-size:14px}
+    .btn-edit{background:linear-gradient(135deg,#4299e1 0%,#3182ce 100%);color:#fff}
+    .btn-delete{background:linear-gradient(135deg,#f56565 0%,#e53e3e 100%);color:#fff}
+</style>
+
+<div class="main-container">
+    <div class="header-row mb-3">
+        <h2 class="section-title mb-0">Calendar of Events</h2>
+        <button type="button" class="btn btn-primary-gradient" onclick="toggleAddEventModal(true)"><i class="fas fa-plus me-2"></i>Add Event</button>
     </div>
 
-    <!-- Events Table -->
-    <div class="card">
-        <div class="card-header">
-            <h5 class="card-title mb-0">
-                <i class="fas fa-list"></i>
-                Event List ({{ events|length }} events)
-            </h5>
+    <div class="table-container">
+        <div class="table-toolbar">
+            <div class="header-actions d-flex align-items-center ms-auto"></div>
         </div>
-        <div class="card-body">
-            {% if events %}
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Event Name</th>
-                                <th>Date</th>
-                                <th>Created</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for event in events %}
-                            <tr>
-                                <td><strong>{{ event.event_name }}</strong></td>
-                                <td>{{ event.event_date.strftime('%B %d, %Y') }}</td>
-                                <td>{{ event.created_at.strftime('%B %d, %Y') }}</td>
-                                <td>
-                                    <div class="btn-group" role="group">
-                                        <a href="{{ url_for('events.records', event_id=event.event_id) }}" class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-clipboard-list"></i> Records
-                                        </a>
-                                        <a href="{{ url_for('events.edit', event_id=event.event_id) }}" class="btn btn-sm btn-outline-warning">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <button type="button" class="btn btn-sm btn-outline-danger" 
-                                                onclick="confirmDelete('{{ event.event_id }}', '{{ event.event_name }}')">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Event Name</th>
+                    <th>Date</th>
+                    <th>Created</th>
+                    <th class="th-actions">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if events %}
+                    {% for event in events %}
+                    <tr>
+                        <td><strong>{{ event.event_name }}</strong></td>
+                        <td>{{ event.event_date.strftime('%B %d, %Y') }}</td>
+                        <td>{{ event.created_at.strftime('%B %d, %Y') }}</td>
+                        <td class="actions">
+                            <a href="{{ url_for('events.records', event_id=event.event_id) }}" class="btn btn-sm btn-edit action-btn" title="Records">
+                                <i class="fas fa-clipboard-list"></i>
+                            </a>
+                            <a href="{{ url_for('events.edit', event_id=event.event_id) }}" class="btn btn-sm btn-warning action-btn" title="Edit" style="color:#fff;background:linear-gradient(135deg,#f59e0b,#d97706)">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <form method="POST" action="{{ url_for('events.delete', event_id=event.event_id) }}" style="display:inline;" onsubmit="return confirm('Delete event \"{{ event.event_name }}\"? This will also delete associated attendance records.');">
+                                <button type="submit" class="btn btn-sm btn-delete action-btn" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center" style="padding:40px;color:#999">
+                            <i class="fas fa-calendar-alt fa-3x mb-3 text-muted"></i><br>
+                            No events found
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add Event Modal -->
+<div id="addEventModal" class="modal-overlay">
+    <div class="modal-card">
+        <div class="modal-header"><strong><i class="fas fa-plus me-2"></i>Add Event</strong></div>
+        <div class="modal-body">
+            <form id="addEventForm" method="POST" action="{{ url_for('events.add') }}">
+                <div class="mb-3">
+                    <label class="form-label" for="event_name">Event Name</label>
+                    <input type="text" id="event_name" name="event_name" class="form-control" placeholder="e.g., General Assembly" required>
                 </div>
-            {% else %}
-                <div class="text-center py-5">
-                    <i class="fas fa-calendar-alt fa-3x text-muted mb-3"></i>
-                    <h5 class="text-muted">No events found</h5>
-                    <p class="text-muted">Get started by creating your first event.</p>
-                    <a href="{{ url_for('events.add') }}" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Add Event
-                    </a>
+                <div class="mb-3">
+                    <label class="form-label" for="event_date">Event Date</label>
+                    <input type="date" id="event_date" name="event_date" class="form-control">
                 </div>
-            {% endif %}
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-cancel" onclick="toggleAddEventModal(false)">Cancel</button>
+                    <button type="submit" class="btn btn-primary-gradient">Create Event</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Confirm Delete</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Are you sure you want to delete event <strong id="eventName"></strong>?</p>
-                <p class="text-danger">This will also delete all associated attendance records.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <form id="deleteForm" method="POST" style="display: inline;">
-                    <button type="submit" class="btn btn-danger">Delete</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-function confirmDelete(eventId, eventName) {
-    document.getElementById('eventName').textContent = eventName;
-    document.getElementById('deleteForm').action = `/events/delete/${eventId}`;
-    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+function toggleAddEventModal(show){
+    document.getElementById('addEventModal').style.display = show ? 'flex' : 'none';
 }
+document.getElementById('addEventModal').addEventListener('click', function(e){
+    if(e.target === this){ toggleAddEventModal(false); }
+});
 </script>
 {% endblock %}

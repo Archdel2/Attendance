@@ -3,115 +3,76 @@
 {% block title %}Quick Mark - COMSOC Attendance System{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <!-- Page header -->
-    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h2">
-            <i class="fas fa-check-double text-primary"></i>
-            Quick Mark Attendance
-        </h1>
-        <div class="btn-toolbar mb-2 mb-md-0">
-            <a href="{{ url_for('attendance.view_record', record_id=record.record_id) }}" class="btn btn-sm btn-outline-secondary">
-                <i class="fas fa-arrow-left"></i> Back to Attendance Record
-            </a>
+<style>
+    h2.section-title{font-weight:900;font-size:2rem;color:#f97316;font-style:italic;text-align:left}
+    .card-like{background:#fff;border-radius:16px;box-shadow:0 4px 12px rgba(0,0,0,.08);overflow:hidden;margin-bottom:16px}
+    .card-like-header{padding:12px 16px;border-bottom:2px solid #f97316;background:#fff}
+    .btn-primary-gradient{background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;border:none;padding:10px 16px;border-radius:12px;font-weight:600}
+    .btn-success-grad{background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff}
+    .btn-danger-grad{background:linear-gradient(135deg,#f56565,#e53e3e);color:#fff}
+    .btn-warning-grad{background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff}
+    .btn-info-grad{background:linear-gradient(135deg,#06b6d4,#0ea5e9);color:#fff}
+    table{width:100%;border-collapse:separate;border-spacing:0}
+    thead{background:#f97316;color:#fff}
+    thead th{padding:14px;font-weight:700;text-transform:uppercase;font-size:14px;letter-spacing:.5px;text-align:left}
+    thead th.th-actions{text-align:right}
+    tbody tr:nth-child(even){background:#fff8f1}
+    tbody tr:hover{background:#ffe1c7}
+    tbody td{padding:14px;vertical-align:middle;border-bottom:1px solid #f2f2f2;text-align:left}
+    .actions{text-align:right;white-space:nowrap}
+    .action-btn{padding:8px 12px;border-radius:10px;border:2px solid transparent;transition:all .3s;margin-left:6px;font-size:14px}
+</style>
+
+<div class="main-container">
+    <h2 class="section-title mb-3">Quick Mark Attendance</h2>
+
+    <div class="card-like">
+        <div class="card-like-header"><strong><i class="fas fa-info-circle me-2"></i>Quick Mark for: {{ record.record_name }}</strong></div>
+        <div class="p-3">
+            <div class="row g-2">
+                <div class="col-md-6"><strong>Record:</strong> {{ record.record_name }}</div>
+                <div class="col-md-6"><strong>Event:</strong> {{ record.event.event_name }}</div>
+            </div>
         </div>
     </div>
 
-    <!-- Record Info -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-info-circle"></i>
-                        Quick Mark for: {{ record.record_name }}
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <strong>Record:</strong> {{ record.record_name }}
-                        </div>
-                        <div class="col-md-6">
-                            <strong>Event:</strong> {{ record.event.event_name }}
-                        </div>
+    <div class="card-like">
+        <div class="card-like-header"><strong><i class="fas fa-tools me-2"></i>Bulk Actions</strong></div>
+        <div class="p-3">
+            <div class="row g-2">
+                <div class="col-md-3 d-grid"><button type="button" class="btn btn-success-grad" onclick="markAllAs('Present')"><i class="fas fa-check me-2"></i>Mark All Present</button></div>
+                <div class="col-md-3 d-grid"><button type="button" class="btn btn-danger-grad" onclick="markAllAs('Absent')"><i class="fas fa-times me-2"></i>Mark All Absent</button></div>
+                <div class="col-md-3 d-grid"><button type="button" class="btn btn-warning-grad" onclick="markAllAs('Excused')"><i class="fas fa-exclamation me-2"></i>Mark All Excused</button></div>
+                <div class="col-md-3 d-grid"><button type="button" class="btn btn-info-grad" onclick="initializeRecord()"><i class="fas fa-users me-2"></i>Initialize Record</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-like">
+        <div class="card-like-header"><strong><i class="fas fa-filter me-2"></i>Search and Filter</strong></div>
+        <div class="p-3">
+            <div class="row g-2">
+                <div class="col-md-6"><input type="text" class="form-control" id="searchStudents" placeholder="Search students..."></div>
+                <div class="col-md-6 text-end">
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-secondary active" onclick="filterStudents('all')">All</button>
+                        <button type="button" class="btn btn-success-grad" onclick="filterStudents('Present')">Present</button>
+                        <button type="button" class="btn btn-danger-grad" onclick="filterStudents('Absent')">Absent</button>
+                        <button type="button" class="btn btn-warning-grad" onclick="filterStudents('Excused')">Excused</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Bulk Actions -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-tools"></i>
-                        Bulk Actions
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3 mb-2">
-                            <button type="button" class="btn btn-success w-100" onclick="markAllAs('Present')">
-                                <i class="fas fa-check"></i> Mark All Present
-                            </button>
-                        </div>
-                        <div class="col-md-3 mb-2">
-                            <button type="button" class="btn btn-danger w-100" onclick="markAllAs('Absent')">
-                                <i class="fas fa-times"></i> Mark All Absent
-                            </button>
-                        </div>
-                        <div class="col-md-3 mb-2">
-                            <button type="button" class="btn btn-warning w-100" onclick="markAllAs('Excused')">
-                                <i class="fas fa-exclamation"></i> Mark All Excused
-                            </button>
-                        </div>
-                        <div class="col-md-3 mb-2">
-                            <button type="button" class="btn btn-info w-100" onclick="initializeRecord()">
-                                <i class="fas fa-users"></i> Initialize Record
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Search and Filter -->
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <input type="text" class="form-control" id="searchStudents" placeholder="Search students...">
-        </div>
-        <div class="col-md-6">
-            <div class="btn-group" role="group">
-                <button type="button" class="btn btn-outline-secondary active" onclick="filterStudents('all')">All</button>
-                <button type="button" class="btn btn-outline-success" onclick="filterStudents('Present')">Present</button>
-                <button type="button" class="btn btn-outline-danger" onclick="filterStudents('Absent')">Absent</button>
-                <button type="button" class="btn btn-outline-warning" onclick="filterStudents('Excused')">Excused</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Students List -->
-    <div class="card">
-        <div class="card-header">
-            <h5 class="card-title mb-0">
-                <i class="fas fa-list"></i>
-                Students List (<span id="studentCount">0</span> students)
-            </h5>
-        </div>
-        <div class="card-body">
-            <div id="studentsList">
+    <div class="card-like">
+        <div class="card-like-header"><strong><i class="fas fa-list me-2"></i>Students List (<span id="studentCount">0</span> students)</strong></div>
+        <div class="p-0" id="studentsList">
                 <div class="text-center py-5">
                     <i class="fas fa-users fa-3x text-muted mb-3"></i>
                     <h5 class="text-muted">No students found</h5>
                     <p class="text-muted">Initialize the record with students to start marking attendance.</p>
-                    <button type="button" class="btn btn-primary" onclick="initializeRecord()">
-                        <i class="fas fa-users"></i> Initialize with Students
-                    </button>
-                </div>
+                <button type="button" class="btn btn-primary-gradient" onclick="initializeRecord()"><i class="fas fa-users me-2"></i>Initialize with Students</button>
             </div>
         </div>
     </div>
@@ -152,7 +113,9 @@ let pendingAction = null;
 document.addEventListener('DOMContentLoaded', loadStudents);
 
 function loadStudents() {
-    fetch('{{ url_for("attendance.get_students_for_record", record_id=record.record_id) }}')
+    fetch('{{ url_for("attendance.get_students_for_record", record_id=record.record_id) }}', {
+        headers: { 'Accept': 'application/json' }
+    })
     .then(response => response.json())
     .then(data => {
         students = data.students || [];
@@ -301,6 +264,7 @@ function updateStudentStatus(studentId, status) {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'Accept': 'application/json'
         },
         body: JSON.stringify({
             student_id: studentId,
@@ -333,6 +297,7 @@ function executeBulkUpdate(status) {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'Accept': 'application/json'
         },
         body: JSON.stringify({
             status: status
